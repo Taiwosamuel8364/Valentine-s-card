@@ -347,9 +347,16 @@ function sendNotification() {
 
   // Try Email notification via FormSubmit
   if (notificationConfig.email) {
+    // Create a hidden iframe to submit the form without redirecting the page
+    const iframe = document.createElement("iframe");
+    iframe.name = "hiddenFrame";
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+
     const form = document.createElement("form");
     form.action = `https://formsubmit.co/${notificationConfig.email}`;
     form.method = "POST";
+    form.target = "hiddenFrame"; // Submit to hidden iframe
     form.style.display = "none";
 
     const addField = (name, value) => {
@@ -369,6 +376,12 @@ function sendNotification() {
 
     document.body.appendChild(form);
     form.submit();
+
+    // Clean up after a few seconds
+    setTimeout(() => {
+      document.body.removeChild(form);
+      document.body.removeChild(iframe);
+    }, 3000);
   }
 
   // If no notification method is set up, log to console
