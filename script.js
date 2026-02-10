@@ -15,9 +15,6 @@ const noBtn = document.getElementById("noBtn");
 // Notification settings (will be filled from setup or URL params)
 let notificationConfig = {
   email: "",
-  discordWebhook: "",
-  telegramToken: "",
-  telegramChatId: "",
 };
 
 // Track mouse position
@@ -34,11 +31,8 @@ window.addEventListener("DOMContentLoaded", () => {
   const urlParams = new URLSearchParams(window.location.search);
 
   // Check if config is in URL (someone opened a shared link)
-  if (urlParams.has("e") || urlParams.has("d") || urlParams.has("t")) {
+  if (urlParams.has("e")) {
     notificationConfig.email = urlParams.get("e") || "";
-    notificationConfig.discordWebhook = urlParams.get("d") || "";
-    notificationConfig.telegramToken = urlParams.get("t") || "";
-    notificationConfig.telegramChatId = urlParams.get("c") || "";
 
     // Show card directly (recipient view)
     showValentineCard();
@@ -61,15 +55,6 @@ setupForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   notificationConfig.email = document.getElementById("emailInput").value.trim();
-  notificationConfig.discordWebhook = document
-    .getElementById("discordInput")
-    .value.trim();
-  notificationConfig.telegramToken = document
-    .getElementById("telegramToken")
-    .value.trim();
-  notificationConfig.telegramChatId = document
-    .getElementById("telegramChatId")
-    .value.trim();
 
   // Save to localStorage
   localStorage.setItem("valentineConfig", JSON.stringify(notificationConfig));
@@ -101,12 +86,6 @@ function generateShareableLink() {
   const params = new URLSearchParams();
 
   if (notificationConfig.email) params.set("e", notificationConfig.email);
-  if (notificationConfig.discordWebhook)
-    params.set("d", notificationConfig.discordWebhook);
-  if (notificationConfig.telegramToken)
-    params.set("t", notificationConfig.telegramToken);
-  if (notificationConfig.telegramChatId)
-    params.set("c", notificationConfig.telegramChatId);
 
   const shareUrl = params.toString()
     ? `${baseUrl}?${params.toString()}`
@@ -305,47 +284,8 @@ function createConfetti() {
 // Notification function - sends alert when YES is clicked
 function sendNotification() {
   const timestamp = new Date().toLocaleString();
-  const message = `🎉 SHE SAID YES! 💖\n\nYour Valentine card was accepted!\nTime: ${timestamp}`;
 
-  // Try Discord notification
-  if (notificationConfig.discordWebhook) {
-    fetch(notificationConfig.discordWebhook, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: message,
-        embeds: [
-          {
-            title: "💝 Valentine's Card Response",
-            description: "She said YES! 🎊",
-            color: 16737380, // Red color
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      }),
-    }).catch((err) => console.log("Discord notification failed:", err));
-  }
-
-  // Try Telegram notification
-  if (notificationConfig.telegramToken && notificationConfig.telegramChatId) {
-    fetch(
-      `https://api.telegram.org/bot${notificationConfig.telegramToken}/sendMessage`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: notificationConfig.telegramChatId,
-          text: message,
-        }),
-      },
-    ).catch((err) => console.log("Telegram notification failed:", err));
-  }
-
-  // Try Email notification via FormSubmit
+  // Send Email notification via FormSubmit
   if (notificationConfig.email) {
     // Create a hidden iframe to submit the form without redirecting the page
     const iframe = document.createElement("iframe");
@@ -385,11 +325,7 @@ function sendNotification() {
   }
 
   // If no notification method is set up, log to console
-  if (
-    !notificationConfig.email &&
-    !notificationConfig.discordWebhook &&
-    !notificationConfig.telegramToken
-  ) {
+  if (!notificationConfig.email) {
     console.log("🎉 SHE SAID YES! (No notification method configured)");
   }
 }
